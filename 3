@@ -1,0 +1,111 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const cards = [
+        { question: "Diferencie tecido conjuntivo frouxo e denso.", answer: "Frouxo: fibras dispersas. Denso: fibras alinhadas." },
+        { question: "Qual célula produz fibras colágenas?", answer: "Fibroblasto." },
+        { question: "Cite 3 funções do tecido conjuntivo.", answer: "Sustentação, defesa, nutrição." },
+        { question: "O que é matriz extracelular?", answer: "Substância gelatinosa com fibras (colágeno, elastina)." },
+        { question: "Como identificar fibrose cística em células?", answer: "Acúmulo de secreções espessas." },
+        { question: "Qual tecido forma tendões?", answer: "Tecido conjuntivo denso modelado." }
+    ];
+
+    // Duplica as cartas para formar pares
+    const gameCards = [...cards, ...cards];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let score = 0;
+
+    const gameBoard = document.getElementById('gameBoard');
+    const scoreDisplay = document.getElementById('score');
+    const resetButton = document.getElementById('resetButton');
+
+    // Embaralha as cartas
+    function shuffleCards() {
+        gameCards.sort(() => Math.random() - 0.5);
+    }
+
+    // Cria o tabuleiro do jogo
+    function createBoard() {
+        gameBoard.innerHTML = '';
+        shuffleCards();
+        gameCards.forEach((card, index) => {
+            const cardElement = document.createElement('div');
+            cardElement.classList.add('card');
+            cardElement.dataset.index = index;
+            cardElement.textContent = '?';
+            cardElement.addEventListener('click', flipCard);
+            gameBoard.appendChild(cardElement);
+        });
+    }
+
+    // Vira a carta ao clicar
+    function flipCard() {
+        const cardIndex = this.dataset.index;
+        if (flippedCards.length < 2 && !flippedCards.includes(cardIndex)) {
+            this.textContent = gameCards[cardIndex].question;
+            this.classList.add('flipped');
+            flippedCards.push(cardIndex);
+
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+    }
+
+    // Verifica se as cartas são iguais
+    function checkMatch() {
+        const [firstIndex, secondIndex] = flippedCards;
+        const firstCard = gameCards[firstIndex];
+        const secondCard = gameCards[secondIndex];
+
+        if (firstCard.question === secondCard.question && firstIndex !== secondIndex) {
+            // Par encontrado!
+            matchedPairs++;
+            score++;
+            scoreDisplay.textContent = score;
+            
+            // Mostra a resposta correta
+            setTimeout(() => {
+                alert(`Resposta correta: ${firstCard.answer}`);
+                document.querySelectorAll('.card').forEach(card => {
+                    if (card.dataset.index == firstIndex || card.dataset.index == secondIndex) {
+                        card.style.visibility = 'hidden';
+                    }
+                });
+                flippedCards = [];
+                checkWin();
+            }, 500);
+        } else {
+            // Não é um par
+            setTimeout(() => {
+                document.querySelectorAll('.card').forEach(card => {
+                    if (card.dataset.index == firstIndex || card.dataset.index == secondIndex) {
+                        card.textContent = '?';
+                        card.classList.remove('flipped');
+                    }
+                });
+                flippedCards = [];
+            }, 1000);
+        }
+    }
+
+    // Verifica se o jogador venceu
+    function checkWin() {
+        if (matchedPairs === cards.length) {
+            setTimeout(() => {
+                alert(`🎉 Parabéns! Você completou o jogo com ${score} acertos!`);
+            }, 500);
+        }
+    }
+
+    // Reinicia o jogo
+    resetButton.addEventListener('click', () => {
+        flippedCards = [];
+        matchedPairs = 0;
+        score = 0;
+        scoreDisplay.textContent = score;
+        createBoard();
+    });
+
+    // Inicia o jogo
+    createBoard();
+});
